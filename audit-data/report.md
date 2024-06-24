@@ -362,12 +362,13 @@ Also, check that the address is not zero.
 
 **Impact:** Wrong token will be created which creates problem in identifying the token.
 
+**Recommend Mitigation:**
 ```diff
 -        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).name());
 +        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).symbol());
 ```
 
-**Recommend Mitigation:** try to use the correct name and symbol wherever it is required.
+Also, try to use the correct name and symbol wherever it is required.
 
 ### [I-4] Event is missing `indexed` fields
 
