@@ -25,7 +25,7 @@ Lead Auditors:
 - [Findings](#findings)
   - [High](#high)
     - [\[H-1\] `TSwapPool::deposit` is missing deadline check causing transactions to complete even after the deadline](#h-1-tswappooldeposit-is-missing-deadline-check-causing-transactions-to-complete-even-after-the-deadline)
-    - [\[H-2\] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocll to take too many tokens from users, resulting in lost fees](#h-2-incorrect-fee-calculation-in-tswappoolgetinputamountbasedonoutput-causes-protocll-to-take-too-many-tokens-from-users-resulting-in-lost-fees)
+    - [\[H-2\] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocol to take too many tokens from users, resulting in lost fees](#h-2-incorrect-fee-calculation-in-tswappoolgetinputamountbasedonoutput-causes-protocol-to-take-too-many-tokens-from-users-resulting-in-lost-fees)
     - [\[H-3\] Lack of slippage protection in `TSwapPool::swapExactOutput` causes users to potentially receive way fewer tokens](#h-3-lack-of-slippage-protection-in-tswappoolswapexactoutput-causes-users-to-potentially-receive-way-fewer-tokens)
     - [\[H-4\] `TSwapPool::sellPoolTokens` mismatches input and output tokens causing users to receive the incorrect amount of tokens](#h-4-tswappoolsellpooltokens-mismatches-input-and-output-tokens-causing-users-to-receive-the-incorrect-amount-of-tokens)
     - [\[H-5\] In `TSwapPool::_swap` the extra tokens given to users after every `swapCount` breaks the protocol invariant of `x * y = k`](#h-5-in-tswappool_swap-the-extra-tokens-given-to-users-after-every-swapcount-breaks-the-protocol-invariant-of-x--y--k)
@@ -36,7 +36,7 @@ Lead Auditors:
   - [Informationals](#informationals)
     - [\[I-1\] `PoolFactory::PoolFactory__PoolDoesNotExist` is not used and should be removed](#i-1-poolfactorypoolfactory__pooldoesnotexist-is-not-used-and-should-be-removed)
     - [\[I-2\] Lacking zero address checks](#i-2-lacking-zero-address-checks)
-    - [\[I-3\] `PoolFacotry::createPool` should use `.symbol()` instead of `.name()`](#i-3-poolfacotrycreatepool-should-use-symbol-instead-of-name)
+    - [\[I-3\] `PoolFactory::createPool` should use `.symbol()` instead of `.name()`](#i-3-poolfactorycreatepool-should-use-symbol-instead-of-name)
     - [\[I-4\] Event is missing `indexed` fields](#i-4-event-is-missing-indexed-fields)
     - [\[I-5\] Different Solidity Versions are used](#i-5-different-solidity-versions-are-used)
     - [\[I-6\] IERC20 interface contract is not used, so it should be removed from `PoolFactory.sol`](#i-6-ierc20-interface-contract-is-not-used-so-it-should-be-removed-from-poolfactorysol)
@@ -72,13 +72,13 @@ We use the [CodeHawks](https://docs.codehawks.com/hawks-auditors/how-to-evaluate
 # Executive Summary
 ## Issues found
 
-| Severtity | Number of issues found |
-| --------- | ---------------------- |
-| High      | 5                      |
-| Medium    | 0                      |
-| Low       | 3                      |
-| Info      | 10                     |
-| Total     | 18                     |
+| Severity | Number of issues found |
+| -------- | ---------------------- |
+| High     | 5                      |
+| Medium   | 0                      |
+| Low      | 3                      |
+| Info     | 10                     |
+| Total    | 18                     |
 
 
 # Findings
@@ -86,7 +86,7 @@ We use the [CodeHawks](https://docs.codehawks.com/hawks-auditors/how-to-evaluate
 
 ### [H-1] `TSwapPool::deposit` is missing deadline check causing transactions to complete even after the deadline
 
-**Description:** The `deposit` function accepts a deadline parameter, which according to the documentation is "The deadline for the transaction to be completed by". However, this parameter is never used. As a consequence, operationrs that add liquidity to the pool might be executed at unexpected times, in market conditions where the deposit rate is unfavorable. 
+**Description:** The `deposit` function accepts a deadline parameter, which according to the documentation is "The deadline for the transaction to be completed by". However, this parameter is never used. As a consequence, operations that add liquidity to the pool might be executed at unexpected times, in market conditions where the deposit rate is unfavorable. 
 
 <!-- MEV attacks -->
 
@@ -110,7 +110,7 @@ function deposit(
     {
 ```
 
-### [H-2] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocll to take too many tokens from users, resulting in lost fees
+### [H-2] Incorrect fee calculation in `TSwapPool::getInputAmountBasedOnOutput` causes protocol to take too many tokens from users, resulting in lost fees
 
 **Description:** The `getInputAmountBasedOnOutput` function is intended to calculate the amount of tokens a user should deposit given an amount of tokens of output tokens. However, the function currently miscalculates the resulting amount. When calculating the fee, it scales the amount by 10_000 instead of 1_000. 
 
@@ -139,7 +139,7 @@ function deposit(
 
 **Description:** The `swapExactOutput` function does not include any sort of slippage protection. This function is similar to what is done in `TSwapPool::swapExactInput`, where the function specifies a `minOutputAmount`, the `swapExactOutput` function should specify a `maxInputAmount`. 
 
-**Impact:** If market conditions change before the transaciton processes, the user could get a much worse swap. 
+**Impact:** If market conditions change before the transaction processes, the user could get a much worse swap. 
 
 **Proof of Concept:** 
 1. The price of 1 WETH right now is 1,000 USDC
@@ -170,11 +170,11 @@ function deposit(
 
 ### [H-4] `TSwapPool::sellPoolTokens` mismatches input and output tokens causing users to receive the incorrect amount of tokens
 
-**Description:** The `sellPoolTokens` function is intended to allow users to easily sell pool tokens and receive WETH in exchange. Users indicate how many pool tokens they're willing to sell in the `poolTokenAmount` parameter. However, the function currently miscalculaes the swapped amount. 
+**Description:** The `sellPoolTokens` function is intended to allow users to easily sell pool tokens and receive WETH in exchange. Users indicate how many pool tokens they're willing to sell in the `poolTokenAmount` parameter. However, the function currently miscalculates the swapped amount. 
 
 This is due to the fact that the `swapExactOutput` function is called, whereas the `swapExactInput` function is the one that should be called. Because users specify the exact amount of input tokens, not output. 
 
-**Impact:** Users will swap the wrong amount of tokens, which is a severe disruption of protcol functionality. 
+**Impact:** Users will swap the wrong amount of tokens, which is a severe disruption of protocol functionality. 
 
 **Proof of Concept:** 
 <write PoC here>
@@ -220,7 +220,7 @@ Most simply put, the protocol's core invariant is broken.
 
 **Proof of Concept:** 
 1. A user swaps 10 times, and collects the extra incentive of `1_000_000_000_000_000_000` tokens
-2. That user continues to swap untill all the protocol funds are drained
+2. That user continues to swap until all the protocol funds are drained
 
 <details>
 <summary>Proof Of Code</summary>
@@ -293,7 +293,7 @@ Place the following into `TSwapPool.t.sol`.
 
 ### [L-2] Default value returned by `TSwapPool::swapExactInput` results in incorrect return value given
 
-**Description:** The `swapExactInput` function is expected to return the actual amount of tokens bought by the caller. However, while it declares the named return value `ouput` it is never assigned a value, nor uses an explict return statement. 
+**Description:** The `swapExactInput` function is expected to return the actual amount of tokens bought by the caller. However, while it declares the named return value `output` it is never assigned a value, nor uses an explicit return statement. 
 
 **Impact:** The return value will always be 0, giving incorrect information to the caller. 
 
@@ -320,7 +320,7 @@ Place the following into `TSwapPool.t.sol`.
 
 ### [L-3] `PoolFactory::create` is working wrong because of a one line in the function which causes it to change the name of the token
 
-**Description:** The `PoolFactory::create` function inside it, it has initiliazed a new variable named `liquidityTokenSymbol` in which it uses the `IERC20(tokenAddress).name()` where it should be `symbol` not `.name()`, because if it is name then we can change the name and it would be anything but here in the protocol we are making token so it's symbol name should be used.
+**Description:** The `PoolFactory::create` function inside it, it has initialized a new variable named `liquidityTokenSymbol` in which it uses the `IERC20(tokenAddress).name()` where it should be `symbol` not `.name()`, because if it is name then we can change the name and it would be anything but here in the protocol we are making token so it's symbol name should be used.
 
 **Impact:** LOW because it will not cost more problem rather than having a different name.
 
@@ -339,7 +339,12 @@ Place the following into `TSwapPool.t.sol`.
 - error PoolFactory__PoolDoesNotExist(address tokenAddress);
 ```
 
-### [I-2] Lacking zero address checks 
+### [I-2] Lacking zero address checks
+
+**Description:** Zero address checking is mandatory because the owner of the contract or token will lose the ownership of the contract.
+
+**Impact:** Its' impact will be low because it will just transfer the ownership of the token and the contract.
+**Recommended Mitigation:**
 
 ```diff
     constructor(address wethToken) {
@@ -349,13 +354,20 @@ Place the following into `TSwapPool.t.sol`.
         i_wethToken = wethToken;
     }
 ```
+Also, check that the address is not zero.
 
-### [I-3] `PoolFacotry::createPool` should use `.symbol()` instead of `.name()`
+### [I-3] `PoolFactory::createPool` should use `.symbol()` instead of `.name()`
+
+**Description:** This will create problem in making the token because inside the `createPool` function we are declaring a string named `liquidityTokenSymbol` which helps us in making the token symbol. But in the code it is using the `.name()` function which is wrong because if we create the token with its name then it will create problem to identify it so we are creating it with the symbol but in the initialization state we have declared it as name() symbol. So, don't use the name() rather than use symbol().
+
+**Impact:** Wrong token will be created which creates problem in identifying the token.
 
 ```diff
 -        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).name());
 +        string memory liquidityTokenSymbol = string.concat("ts", IERC20(tokenAddress).symbol());
 ```
+
+**Recommend Mitigation:** try to use the correct name and symbol wherever it is required.
 
 ### [I-4] Event is missing `indexed` fields
 
